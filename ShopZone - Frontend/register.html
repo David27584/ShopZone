@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopZone - Registro</title>
+    <link rel="stylesheet" href="css/register.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>ShopZone</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="products.html">Productos</a>
+            <a href="login.html">Iniciar Sesión</a>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <form action="#" method="POST" class="formulario" id="formRegistro">
+                <h2>Registro de Usuario</h2>
+
+                <!-- Nombre -->
+                <label for="nombre">Nombre Completo:</label>
+                <input type="text" id="nombre" name="nombre" required />
+
+                <!-- Email -->
+                <label for="correo">Correo electrónico:</label>
+                <input type="email" id="correo" name="correo" required />
+
+                <!-- Contraseña -->
+                <label for="contrasena">Contraseña:</label>
+                <input type="password" id="contrasena" name="contrasena" required minlength="6" />
+
+                <!-- Confirmar contraseña -->
+                <label for="confirmar">Confirmar contraseña:</label>
+                <input type="password" id="confirmar" name="confirmar" required minlength="6" />
+
+                <!-- Fecha de nacimiento -->
+                <label for="fechaNacimiento">Fecha de nacimiento:</label>
+                <input type="date" id="fechaNacimiento" name="fechaNacimiento" required />
+
+                <!-- Pais -->
+                <label for="pais">Pais:</label>
+                <select id="pais" name="pais" required>
+                    <option value="">Selecciona tu país</option>
+                    <option value="Colombia">Colombia</option>
+                    <option value="México">México</option>
+                    <!-- más países... -->
+                </select>
+
+                <!-- Género -->
+                <label for="genero">Género:</label>
+                <select id="genero" name="genero" required>
+                    <option value="">Seleccione una opción</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                    <option value="prefieroNoDecirlo">Prefiero no decirlo</option>
+                </select>
+
+                <!-- Aceptar términos -->
+                <label class="checkbox">
+                    <input type="checkbox" id="terminos" name="terminos" required />
+                    Acepto los <a href="#">términos y condiciones</a>
+                </label>
+
+                <!-- Botón de envío -->
+                <button type="submit">Registrarse</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 ShopZone - Todos los derechos reservados</p>
+    </footer>
+
+    <script src="js/register.js"></script>
+
+</body>
+
+</html>
