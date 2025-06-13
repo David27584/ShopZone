@@ -1,4 +1,6 @@
 const Usuario = require ('../models/userModel')
+const bcrypt = require('bcryptjs');
+const { validationResult } = require('express-validator');
 
 /* Simular base de datos temporal
 const usuarios = [
@@ -34,6 +36,11 @@ const obtenerUsuarioId = async (req, res) => {
 
 // POST /api/usuarios
 const registrarUsuario = async (req, res) => {
+  const errores = validationResult(req);
+  if (!errores.isEmpty()) {
+    return res.status(500).json({ errores: errores.array() });
+  }
+
   const { nombre, correo, contrasena } = req.body;
   
   if (!nombre || !correo || !contrasena) {
@@ -43,29 +50,44 @@ const registrarUsuario = async (req, res) => {
   try {
     const existeUsuario = await Usuario.findOne({ correo });
     if (existeUsuario) {
-      return res.status(400).json({ error: 'El correo ya est´s registrado' });
+      return res.status(400).json({ error: 'El correo ya está registrado' });
     }
+
+    // Hashear la contraseña
+    const salt = await bcrypt.genSalt(10);
+    const contrasenaHasheada = await bcrypt.hash(contrasena, salt);
 
     const nuevoUsuario = new Usuario ({
       nombre,
       correo,
-      contrasena
+      contrasena: contrasenaHasheada,
     });
 
     const usuarioGuardado = await nuevoUsuario.save();
 
     res.status(201).json({
       mensaje: 'Usuario registrado exitosamente',
-      usuario: usuarioGuardado
+      usuario: {
+        _id: usuarioGuardado._id,
+        nombre: usuarioGuardado.nombre,
+        correo: usuarioGuardado.correo,
+        fechaRegistro: usuarioGuardado.fechaRegistro,
+      },
     });
   } catch {
-    res.status(500).json({ error: 'Error al registrar usuario' })
+    console.error('❌ Error al registrar usuario:', error.message);
+    res.status(500).json({ error: 'Error en el servidor' });
   }
 };
 
 // PUT /api/usuario:id
 const actualizarUsuario = async (req, res) => {
-  const { nombre, correo } = req.body;
+  const errores = validationResult(req);
+  if (!errores.isEmpty()) {
+    return res.status(500).json({ errores: errores.array() });
+  }
+
+  const { nombre, correo, contrasena } = req.body;
 
   try {
     const usuario = await Usuario.findById(req.params.id);
@@ -74,9 +96,15 @@ const actualizarUsuario = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Actualizar los campos
+    // Actualizar los campos basicos
     usuario.nombre = nombre || usuario.nombre;
     usuario.correo = correo || usuario.correo;
+
+    // Si se envió una nueva contraseña, la ciframos antes de guardar
+    if (contrasena) {
+      const salt = await bcrypt.genSalt(10);
+      usuario.contrasena = await bcrypt.hash(contrasena, salt);
+    }
 
     const usuarioActualizado = await usuario.save();
 
@@ -112,10 +140,47 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
+// POST /api/usuarios/login
+const loginUsuario = async (req, res) => {
+  const { correo, contrasena } = req.body;
+
+  try {
+    if (!correo || !contrasena) {
+      return res.status(400).json({ error: 'Correo y contrasena son obligatorios' });
+    }
+
+    const usuario = await Usuario.findOne({ correo });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Comparar contraseña
+    const passwordValido = await bcrypt.compare(contrasena, usuario.contrasena);
+    if (!passwordValido) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    // Enviar respuesta sin constraseña
+    res.json({
+      mensaje: 'Inicion de sesión exitoso',
+      usuario: {
+        _id: usuario._id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        fechaRegistro: usuario.fechaRegistro
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
 module.exports = {
     obtenerUsuarios,
     obtenerUsuarioId,
     registrarUsuario,
     actualizarUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    loginUsuario
 };
